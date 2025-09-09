@@ -1,0 +1,7 @@
+temp/
+uploads/
+__pycache__/
+*.pyc
+.env
+sample.py
+git
