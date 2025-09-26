@@ -1,9 +1,10 @@
-from qdrant_client import QdrantClient, AsyncQdrantClient
+from qdrant_client import QdrantClient, AsyncQdrantClient, models
 from llama_index.core import VectorStoreIndex, StorageContext
 from llama_index.vector_stores.qdrant import QdrantVectorStore
 from app.core.config import settings
 from llama_index.core import Settings
 from neo4j_graphrag.retrievers import QdrantNeo4jRetriever
+from typing import List
 from neo4j import GraphDatabase
 import json
 
@@ -104,4 +105,77 @@ class VectorSearchQdant:
             print(f"Error while fetching from Qdrant: {e}")
             return None
         
+    def delete_candidate_by_talent_id(self, collection_name: str, talent_id: str) -> bool:
+
+        scroll_res, _ = self.client.scroll(
+            collection_name=collection_name,
+            scroll_filter=models.Filter(
+                must=[
+                    models.FieldCondition(
+                        key="talent_id",
+                        match=models.MatchValue(value=talent_id)
+                    )
+                ]
+            ),
+            limit=1
+        )
+
+        if not scroll_res:
+            return f"talent_id {talent_id} not found."
+        
+        self.client.delete(
+            collection_name=collection_name,
+            points_selector=models.FilterSelector(
+                filter=models.Filter(
+                    must=[
+                        models.FieldCondition(
+                            key="talent_id",
+                            match=models.MatchValue(value=talent_id)
+                        )
+                    ]
+                )
+            ),
+        )
+        return f"delete talent_id: {talent_id} cucessful!"
+
+    def get_resume_by_talent_id(self, collection_name: str, talent_id: str):
+        scroll_res, _ = self.client.scroll(
+            collection_name=collection_name,
+            scroll_filter=models.Filter(
+                must=[
+                    models.FieldCondition(
+                        key="talent_id",
+                        match=models.MatchValue(value=talent_id)
+                    )
+                ]
+            ),
+            limit=1
+        )
+        if not scroll_res:
+            return f"talent_id {talent_id} not found."
+        return scroll_res[0].payload
+    
+    def get_all_resumes(self, collection_name):
+        resumes = []
+        offset = None
+
+        while True:
+            scroll_res, next_page = self.client.scroll(
+                collection_name=collection_name,
+                offset=offset,
+                limit=100
+            )
+            if not scroll_res:
+                break
+            for point in scroll_res:
+                resumes.append({
+                    "talent_id": point.payload.get("talent_id"),
+                    "resume": point.payload
+                })
+            if not next_page:
+                break
+            offset = next_page
+
+        return resumes
+    
 vector_search = VectorSearchQdant()

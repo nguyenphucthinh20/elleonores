@@ -30,6 +30,7 @@ class Config:
     AZURE_OPENAI_ENDPOINT = os.getenv("AZURE_OPENAI_ENDPOINT")
     API_VERSION = os.getenv("API_VERSION")
     GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+    
 settings = Config()
 
 def init_settings():
@@ -39,6 +40,8 @@ def init_settings():
             init_bedrock()
         case "azure-openai":
             init_azure_openai()
+        case "gemini":
+            init_gemini()
         case _:
             raise ValueError(f"Invalid model provider: {model_provider}")
 
@@ -102,3 +105,4 @@ def init_gemini():
         model_name='text-embedding-004'
     )
     print("Settings Gemini susscess!")
+

@@ -3,14 +3,21 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 import logging
-from app.api.v1.routes import auth, rag
+from app.api.v1.routes import (auth,
+                            matcher, 
+                            jd, 
+                            resumes
+                            )
 from app.core.config import init_settings
 
 init_settings()
 
 app = FastAPI()
 app.include_router(auth.router)
-app.include_router(rag.router)
+app.include_router(resumes.router)
+app.include_router(jd.router)
+app.include_router(matcher.router)
+# app.include_router(rag.router)
 
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):

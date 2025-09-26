@@ -238,11 +238,12 @@ class Neo4jDB:
     
     # ===== JOB DESCRIPTION MANAGEMENT METHODS =====
 
-    def create_job_description(self, file_path: str = None, url: str = None, type_: str = None, jd: str = None):
+    def create_job_description(self, file_path: str = None, url: str = None, type_: str = None, jd: str = None, jd_id: str = None):
         with self.driver.session(default_access_mode="WRITE") as session:
             session.run(
                 """
                 CREATE (j:JobDescription {
+                    jd_id: $jd_id,
                     file_path: $file_path,
                     url: $url,
                     type: $type,
@@ -250,6 +251,7 @@ class Neo4jDB:
                     created_at: datetime()
                 })
                 """,
+                jd_id = jd_id,
                 file_path=file_path,
                 url=url,
                 type=type_,
@@ -270,6 +272,23 @@ class Neo4jDB:
             )
             return [record["j"] for record in result]
         
+    def delete_jd(self, jd_id: str) -> str:
+        with self.driver.session(default_access_mode="WRITE") as session:
+            result = session.run(
+                """
+                MATCH (j:JobDescription {jd_id: $jd_id})
+                WITH j
+                LIMIT 1
+                DETACH DELETE j
+                RETURN count(j) as deleted
+                """,
+                jd_id=jd_id
+            )
+            record = result.single()
+            if record and record["deleted"] > 0:
+                return f"Deleted JobDescription with jd_id {jd_id}"
+            else:
+                return f"jd_id {jd_id} not found"       
     # ===== MATCHING RESULTS MANAGEMENT METHODS =====
 
     
@@ -309,5 +328,6 @@ class Neo4jDB:
                 records = session.run(query)
 
             return [record["r"]["result_json"] for record in records]
+        
 def get_db() -> Neo4jDB:
     return Neo4jDB()

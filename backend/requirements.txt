@@ -18,3 +18,5 @@ python-multipart
 openpyxl
 neo4j-graphrag
 playwright
+llama-index-embeddings-gemini
+llama-index-llms-gemini

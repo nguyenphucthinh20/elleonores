@@ -7,7 +7,7 @@ import uuid
 import json
 from datetime import datetime
 from app.modules.loaders import load_file
-from app.services.score_candidate_service import openai_service
+from app.services.evaluation_candidate_service import openai_service
 from app.prompts.resumes import extract_resume
 from app.prompts.job_description import extract_jd
 from app.llms.azure_openai_client import azure_client
